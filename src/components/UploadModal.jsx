@@ -289,10 +289,25 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
             <AlertCircle size={48} color="var(--status-urgent)" style={{ margin: '0 auto 16px' }} />
             <h3>Processing Encountered an Issue</h3>
-            <p style={{ color: 'var(--text-secondary)', margin: '8px 0 24px' }}>{errorMsg}</p>
-            <button className="btn btn-secondary" onClick={() => setStep(0)}>
-              Try Again
-            </button>
+            <p style={{ color: 'var(--text-secondary)', margin: '8px 0 24px', maxWidth: '440px', marginLeft: 'auto', marginRight: 'auto' }}>
+              {errorMsg}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn btn-secondary" onClick={() => setStep(0)}>
+                Try Again
+              </button>
+              {errorMsg.toLowerCase().includes('gemini') && (
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    handleClose();
+                    window.location.href = '/settings';
+                  }}
+                >
+                  Configure API Key
+                </button>
+              )}
+            </div>
           </div>
         )}
 

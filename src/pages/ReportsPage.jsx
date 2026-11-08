@@ -7,9 +7,9 @@ import {
   Trash2, 
   Eye, 
   Upload, 
-  Filter, 
   Calendar, 
-  Building2, 
+  RotateCcw,
+  Loader2,
   AlertCircle,
   LayoutGrid,
   List as ListIcon
@@ -47,7 +47,7 @@ export default function ReportsPage({ onOpenUpload }) {
 
   const handleDelete = async (e, reportId) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this report? This will permanently delete the PDF, all extracted observations, and ChromaDB vector embeddings.')) {
+    if (!window.confirm('Are you sure you want to delete this report? This will permanently delete the PDF, all extracted observations, and vector embeddings.')) {
       return;
     }
 
@@ -58,6 +58,18 @@ export default function ReportsPage({ onOpenUpload }) {
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete report');
+    }
+  };
+
+  const handleRetry = async (e, reportId) => {
+    e.stopPropagation();
+    try {
+      toast.loading('Retrying report processing...', { id: 'retry' });
+      await reportsAPI.retry(reportId, activePatient.id);
+      toast.success('Re-processing started!', { id: 'retry' });
+      loadReports();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to retry processing', { id: 'retry' });
     }
   };
 
@@ -191,7 +203,7 @@ export default function ReportsPage({ onOpenUpload }) {
 
                 <button 
                   onClick={(e) => handleDelete(e, report.id)}
-                  title="Delete report and purge ChromaDB vectors"
+                  title="Delete report and purge vectors"
                   style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
                 >
                   <Trash2 size={16} />
@@ -208,15 +220,59 @@ export default function ReportsPage({ onOpenUpload }) {
                     {report.total_pages} page document • {report.original_filename}
                   </div>
                 )}
+                {report.status === 'failed' && report.processing_message && (
+                  <div style={{ 
+                    marginTop: '8px', 
+                    padding: '8px 10px', 
+                    background: 'var(--status-urgent-bg)', 
+                    border: '1px solid var(--status-urgent-border)', 
+                    borderRadius: '6px', 
+                    color: 'var(--status-urgent)', 
+                    fontSize: '0.75rem',
+                    lineHeight: 1.3
+                  }}>
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                      <AlertCircle size={13} /> Processing Incomplete:
+                    </strong>
+                    {report.processing_message}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--primary)' }}>
-                  {report.observation_count} Tests Extracted
-                </span>
-                <span className="btn btn-secondary btn-sm">
-                  View Report →
-                </span>
+                {report.status === 'failed' ? (
+                  <>
+                    <button 
+                      className="btn btn-secondary btn-sm"
+                      onClick={(e) => handleRetry(e, report.id)}
+                      title="Retry processing this report"
+                      style={{ gap: '4px' }}
+                    >
+                      <RotateCcw size={13} /> Retry
+                    </button>
+                    <span className="status-badge critical" style={{ fontSize: '0.7rem' }}>
+                      FAILED
+                    </span>
+                  </>
+                ) : report.status === 'processing' || report.status === 'extracting' || report.status === 'validating' ? (
+                  <>
+                    <span className="status-badge warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Loader2 size={12} className="spinner" /> Processing...
+                    </span>
+                    <span className="btn btn-secondary btn-sm">
+                      Details →
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--primary)' }}>
+                      {report.observation_count} Tests Extracted
+                    </span>
+                    <span className="btn btn-secondary btn-sm">
+                      View Report →
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -257,16 +313,28 @@ export default function ReportsPage({ onOpenUpload }) {
                     <span style={{ fontWeight: 600 }}>{report.observation_count}</span> investigations
                   </td>
                   <td>
-                    <span className="status-badge normal">{report.status.toUpperCase()}</span>
+                    <span className={`status-badge ${report.status === 'failed' ? 'critical' : report.status === 'completed' ? 'normal' : 'warning'}`}>
+                      {report.status.toUpperCase()}
+                    </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        className="btn btn-secondary btn-sm"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/reports/${report.id}`); }}
-                      >
-                        <Eye size={14} /> Open
-                      </button>
+                      {report.status === 'failed' ? (
+                        <button 
+                          className="btn btn-secondary btn-sm"
+                          onClick={(e) => handleRetry(e, report.id)}
+                          title="Retry processing"
+                        >
+                          <RotateCcw size={14} /> Retry
+                        </button>
+                      ) : (
+                        <button 
+                          className="btn btn-secondary btn-sm"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/reports/${report.id}`); }}
+                        >
+                          <Eye size={14} /> Open
+                        </button>
+                      )}
                       <button 
                         className="btn btn-danger btn-sm"
                         onClick={(e) => handleDelete(e, report.id)}

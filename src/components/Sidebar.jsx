@@ -12,11 +12,12 @@ import {
   Check, 
   LogOut, 
   Activity,
-  Upload
+  Upload,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export default function Sidebar({ onOpenUpload }) {
+export default function Sidebar({ onOpenUpload, isOpen, onClose }) {
   const { user, patients, activePatient, switchPatient, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -32,12 +33,25 @@ export default function Sidebar({ onOpenUpload }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-logo">
-        <h1>
-          <Activity size={26} color="var(--primary)" /> HealthTrack AI
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <h1>
+            <Activity size={26} color="var(--primary)" /> HealthTrack AI
+          </h1>
+          <button 
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="Close navigation"
+          >
+            <X size={20} />
+          </button>
+        </div>
         <span>Report Intelligence & Tracking</span>
       </div>
 
@@ -69,6 +83,7 @@ export default function Sidebar({ onOpenUpload }) {
                 onClick={() => {
                   switchPatient(p);
                   setDropdownOpen(false);
+                  if (onClose) onClose();
                 }}
               >
                 <div style={{ flex: 1 }}>
@@ -86,6 +101,7 @@ export default function Sidebar({ onOpenUpload }) {
                 onClick={() => {
                   setDropdownOpen(false);
                   navigate('/family');
+                  if (onClose) onClose();
                 }}
                 style={{ color: 'var(--primary)', fontWeight: 600 }}
               >
@@ -112,6 +128,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/dashboard" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <LayoutDashboard size={20} /> Dashboard
         </NavLink>
@@ -119,6 +136,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/reports" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <FileText size={20} /> Reports
         </NavLink>
@@ -126,6 +144,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/trends" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <TrendingUp size={20} /> Health Trends
         </NavLink>
@@ -133,6 +152,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/chat" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <MessageSquare size={20} /> AI Medical Chat
         </NavLink>
@@ -140,6 +160,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/family" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <Users size={20} /> Family
         </NavLink>
@@ -147,6 +168,7 @@ export default function Sidebar({ onOpenUpload }) {
         <NavLink 
           to="/settings" 
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={handleNavClick}
         >
           <SettingsIcon size={20} /> Settings
         </NavLink>

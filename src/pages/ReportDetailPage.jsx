@@ -18,7 +18,8 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  AlertCircle
+  AlertCircle,
+  RotateCcw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -71,6 +72,17 @@ export default function ReportDetailPage() {
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete report');
+    }
+  };
+
+  const handleRetry = async () => {
+    try {
+      toast.loading('Retrying report processing...', { id: 'retry' });
+      await reportsAPI.retry(id, activePatient.id);
+      toast.success('Re-processing started!', { id: 'retry' });
+      loadReportDetails();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to retry processing', { id: 'retry' });
     }
   };
 
@@ -193,6 +205,39 @@ export default function ReportDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Failure Alert Banner */}
+      {report.status === 'failed' && (
+        <div style={{
+          background: 'var(--status-urgent-bg)',
+          border: '1px solid var(--status-urgent-border)',
+          borderRadius: 'var(--radius-md)',
+          padding: '20px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '16px'
+        }}>
+          <AlertCircle size={28} color="var(--status-urgent)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ flex: 1 }}>
+            <h3 style={{ color: 'var(--status-urgent)', marginBottom: '6px' }}>Report Processing Incomplete</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '16px' }}>
+              {report.processing_message || 'The report could not be processed completely. 0 observations extracted.'}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary btn-sm" onClick={handleRetry}>
+                <RotateCcw size={14} /> Retry Processing
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/settings')}>
+                Check API Key in Settings
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={handleDelete}>
+                <Trash2 size={14} /> Delete Failed Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Stat Cards */}
       <div className="metric-cards" style={{ marginBottom: '24px' }}>

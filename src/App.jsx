@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { Menu, Activity } from 'lucide-react';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -20,6 +21,7 @@ import SettingsPage from './pages/SettingsPage';
 function ProtectedLayout() {
   const { user, loading, activePatient, refreshPatients } = useAuth();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   if (loading) {
@@ -42,7 +44,41 @@ function ProtectedLayout() {
 
   return (
     <div className="app-layout">
-      <Sidebar onOpenUpload={() => setUploadModalOpen(true)} />
+      {/* Mobile Top Header */}
+      <header className="mobile-header">
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22} />
+        </button>
+        <div className="mobile-header-brand">
+          <Activity size={20} color="var(--primary)" />
+          <span>HealthTrack AI</span>
+        </div>
+        <div className="mobile-profile-pill">
+          {activePatient?.name || user?.name || 'Profile'}
+        </div>
+      </header>
+
+      {/* Backdrop for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setSidebarOpen(false)} 
+          aria-hidden="true" 
+        />
+      )}
+
+      <Sidebar 
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onOpenUpload={() => {
+          setSidebarOpen(false);
+          setUploadModalOpen(true);
+        }} 
+      />
       
       <main className="main-content">
         <Routes>

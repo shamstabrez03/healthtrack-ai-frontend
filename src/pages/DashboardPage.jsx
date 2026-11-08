@@ -298,18 +298,50 @@ export default function DashboardPage({ onOpenUpload }) {
                         </div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '3px 8px', borderRadius: '4px' }}>
-                      {report.report_date || report.upload_timestamp?.split('T')[0]}
-                    </span>
+                    {report.status === 'failed' ? (
+                      <span className="status-badge critical" style={{ fontSize: '0.7rem' }}>
+                        FAILED
+                      </span>
+                    ) : report.status === 'processing' || report.status === 'extracting' || report.status === 'validating' ? (
+                      <span className="status-badge warning" style={{ fontSize: '0.7rem' }}>
+                        PROCESSING
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '3px 8px', borderRadius: '4px' }}>
+                        {report.report_date || report.upload_timestamp?.split('T')[0]}
+                      </span>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                      <strong>{report.observation_count}</strong> observations extracted
-                    </span>
-                    <button className="btn btn-secondary btn-sm" style={{ padding: '4px 10px' }}>
-                      View Details →
-                    </button>
+                    {report.status === 'failed' ? (
+                      <>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--status-urgent)' }}>
+                          Processing incomplete (0 tests)
+                        </span>
+                        <button className="btn btn-secondary btn-sm" style={{ padding: '4px 10px', color: 'var(--status-urgent)' }}>
+                          Inspect & Retry →
+                        </button>
+                      </>
+                    ) : report.status === 'processing' || report.status === 'extracting' || report.status === 'validating' ? (
+                      <>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--status-attention)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Loader2 size={12} className="spinner" /> Analyzing document...
+                        </span>
+                        <button className="btn btn-secondary btn-sm" style={{ padding: '4px 10px' }}>
+                          View Status →
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                          <strong>{report.observation_count}</strong> observations extracted
+                        </span>
+                        <button className="btn btn-secondary btn-sm" style={{ padding: '4px 10px' }}>
+                          View Details →
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

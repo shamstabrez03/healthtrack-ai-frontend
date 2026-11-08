@@ -54,6 +54,8 @@ export const reportsAPI = {
     api.get(`/reports/${reportId}/observations`, { params: { patient_id: patientId } }),
   delete: (reportId, patientId) =>
     api.delete(`/reports/${reportId}`, { params: { patient_id: patientId } }),
+  retry: (reportId, patientId) =>
+    api.post(`/reports/${reportId}/retry`, null, { params: { patient_id: patientId } }),
 };
 
 // === Dashboard ===
