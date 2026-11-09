@@ -107,10 +107,10 @@ export default function TrendsPage() {
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
+        <div className="trends-layout-grid">
           {/* Left Column: Test Selector Sidebar */}
           <div>
-            <div className="card" style={{ padding: '16px', position: 'sticky', top: '24px' }}>
+            <div className="card trends-sidebar-card" style={{ padding: '16px' }}>
               <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '12px' }}>
                 TRACKED INVESTIGATIONS
               </div>
